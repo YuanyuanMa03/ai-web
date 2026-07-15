@@ -8,22 +8,11 @@
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJazee6%2Fcloudflare-ai-web&demo-title=Cloudflare%20AI%20Web&demo-url=https%3A%2F%2Fai.jaze.top)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYuanyuanMa03%2Fai-web&demo-title=Cloudflare%20AI%20Web&demo-url=https%3A%2F%2Fai-web-blond-three.vercel.app)
 
-Example: https://ai.jaze.top
+Example: https://ai-web-blond-three.vercel.app
 
 > It may not respond when the quota is used up, it is recommended to deploy it yourself
-
-### Docker
-
-```bash
-docker run -d --name cloudflare-ai-web \
-  -e CF_ACCOUNT_ID=YOUR_CF_ACCOUNT_ID \
-  -e CF_WORKERS_AI_TOKEN=YOUR_CF_WORKERS_AI_TOKEN \
-  -p 3000:3000 \
-  --restart=always \
-  jazee6/cloudflare-ai-web
-```
 
 ## Features
 
@@ -59,6 +48,6 @@ Supported providers:
 
 Multiple providers are separated by commas
 
-## Sponsor
+## Acknowledgements
 
-[Click Me](https://jaze.top/sponsor)
+This project is based on [Jazee6/cloudflare-ai-web](https://github.com/Jazee6/cloudflare-ai-web). Thanks to the original author for the open-source contribution.

@@ -8,22 +8,11 @@
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJazee6%2Fcloudflare-ai-web&demo-title=Cloudflare%20AI%20Web&demo-url=https%3A%2F%2Fai.jaze.top)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYuanyuanMa03%2Fai-web&demo-title=Cloudflare%20AI%20Web&demo-url=https%3A%2F%2Fai-web-blond-three.vercel.app)
 
-示例：https://ai.jaze.top
+示例：https://ai-web-blond-three.vercel.app
 
 > 额度用完时可能无法响应，建议自行部署
-
-### Docker
-
-```bash
-docker run -d --name cloudflare-ai-web \
-  -e CF_ACCOUNT_ID=YOUR_CF_ACCOUNT_ID \
-  -e CF_WORKERS_AI_TOKEN=YOUR_CF_WORKERS_AI_TOKEN \
-  -p 3000:3000 \
-  --restart=always \
-  jazee6/cloudflare-ai-web
-```
 
 ## 特性
 
@@ -59,16 +48,6 @@ docker run -d --name cloudflare-ai-web \
 
 多个提供者使用逗号分隔
 
-## 赞助
+## 致谢
 
-[Click Me](https://jaze.top/sponsor)
-
-<div align="center">
-
-<img src="https://github.com/user-attachments/assets/c194ff8a-7d86-43bf-912e-f35bb5f9d1a0" alt="赞助位1" width="300">
-
-[Doloffer--站式数字订阅充值平台](https://doloffer.com)
-
-主营 GPT、Claude 等 AI多类数字服务会员正版订阅，9 折优惠码 AI8888，极速发货，售后无忧
-
-</div>
+本项目基于 [Jazee6/cloudflare-ai-web](https://github.com/Jazee6/cloudflare-ai-web)，感谢原作者的开源贡献。
