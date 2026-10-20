@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PASSWORD_STORAGE_KEY } from "@/lib/utils";
 
 const formSchema = z.object({
   password: z.string().min(1),
@@ -37,7 +38,7 @@ const AuthDialog = ({
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    localStorage.setItem("CF_AI_PASSWORD", values.password);
+    localStorage.setItem(PASSWORD_STORAGE_KEY, values.password);
     onOpenChange(false);
   }
 
@@ -45,7 +46,7 @@ const AuthDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Please enter your password to continue</DialogTitle>
+          <DialogTitle>请输入访问密码</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -56,14 +57,14 @@ const AuthDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="password" {...field} />
+                    <Input type="password" placeholder="访问密码" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter className="mt-4">
-              <Button type="submit">Submit</Button>
+              <Button type="submit">确定</Button>
             </DialogFooter>
           </form>
         </Form>

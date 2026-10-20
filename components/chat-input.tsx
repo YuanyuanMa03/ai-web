@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { ChatStatus, FileUIPart } from "ai";
 import {
   ArrowUp,
-  Earth,
   Loader2,
   Paperclip,
   RefreshCw,
@@ -19,9 +18,8 @@ import ModelSelect from "@/components/model-select";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import type { Model } from "@/lib/models";
-import { cn, type StoredModelKey } from "@/lib/utils";
-import { Toggle } from "@/components/ui/toggle";
+import type { ModelInfo } from "@/lib/config";
+import { cn } from "@/lib/utils";
 
 export interface onSendMessageProps {
   text: string;
@@ -50,15 +48,13 @@ const ChatInput = ({
   onRetry,
   status = "ready",
   models,
-  modalKey,
 }: {
   className?: string;
   onSendMessage: (data: onSendMessageProps) => void;
   onStop?: () => void;
   onRetry?: () => void;
   status?: ChatStatus;
-  models: Model[];
-  modalKey?: StoredModelKey;
+  models: ModelInfo[];
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,21 +63,17 @@ const ChatInput = ({
     },
   });
   const input = form.watch("input");
-  const [selectedModel, setSelectedModel] = useState<Model>();
+  const [selectedModel, setSelectedModel] = useState<ModelInfo>();
   const [files, setFiles] = useState<FileUIPart[]>([]);
-  const [searchEnabled, setSearchEnabled] = useState(false);
 
   useEffect(() => {
-    setSearchEnabled(localStorage.getItem("CF_AI_SEARCH_ENABLED") === "true");
-  }, []);
-
-  useEffect(() => {
-    if (!selectedModel?.input?.includes("image")) {
+    if (!selectedModel?.vision) {
       setFiles([]);
     }
   }, [selectedModel]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!selectedModel) return;
     form.resetField("input");
     setFiles([]);
     onSendMessage({
@@ -119,7 +111,7 @@ const ChatInput = ({
       setFiles((prevState) => {
         const combinedFiles = [...prevState, ...newFiles];
         if (combinedFiles.length > 5) {
-          toast.warning("You can only attach up to 5 images.");
+          toast.warning("最多只能添加 5 张图片");
           return combinedFiles.slice(0, 5);
         }
         return combinedFiles;
@@ -134,7 +126,7 @@ const ChatInput = ({
 
     for (let i = 0; i < clipboardItems.length; i++) {
       const item = clipboardItems[i];
-      if (item.kind === "file") {
+      if (item.kind === "file" && selectedModel?.vision) {
         event.preventDefault();
         const file = item.getAsFile();
         if (file?.type.startsWith("image/")) {
@@ -153,7 +145,7 @@ const ChatInput = ({
       setFiles((prevState) => {
         const combinedFiles = [...prevState, ...newFiles];
         if (combinedFiles.length > 5) {
-          toast.warning("You can only attach up to 5 images.");
+          toast.warning("最多只能添加 5 张图片");
           return combinedFiles.slice(0, 5);
         }
         return combinedFiles;
@@ -179,7 +171,7 @@ const ChatInput = ({
                   <Textarea
                     autoFocus
                     className="border-0 shadow-none focus-visible:ring-0 resize-none max-h-[50vh] scrollbar rounded-b-none rounded-t"
-                    placeholder="Text here..."
+                    placeholder="输入消息，Enter 发送，Shift+Enter 换行"
                     onKeyDown={(event) => {
                       if (
                         event.key === "Enter" &&
@@ -203,6 +195,7 @@ const ChatInput = ({
               if (file.mediaType.startsWith("image/")) {
                 return (
                   <li
+                    // biome-ignore lint/suspicious/noArrayIndexKey: pasted images can share a filename
                     key={`file-${file.filename}-${index}`}
                     className="size-12 overflow-hidden rounded-md relative group hover:shadow transition-all"
                   >
@@ -237,32 +230,14 @@ const ChatInput = ({
               selectedModel={selectedModel}
               setSelectedModel={setSelectedModel}
               models={models}
-              modalKey={modalKey ?? "CF_AI_MODEL"}
             />
 
-            {selectedModel?.input?.includes("search") && (
-              <Toggle
-                aria-label="Toggle web search"
-                className="data-[state=on]:border"
-                pressed={searchEnabled}
-                onPressedChange={(pressed) => {
-                  localStorage.setItem(
-                    "CF_AI_SEARCH_ENABLED",
-                    pressed ? "true" : "false",
-                  );
-                  setSearchEnabled(pressed);
-                }}
-              >
-                <Earth />
-                Search
-              </Toggle>
-            )}
-
-            {selectedModel?.input?.includes("image") && (
+            {selectedModel?.vision && (
               <Button
                 size="icon"
                 variant="ghost"
                 className="relative"
+                aria-label="添加图片"
                 onClick={onAddFiles}
               >
                 <Paperclip />
@@ -274,6 +249,7 @@ const ChatInput = ({
               className="ml-auto"
               disabled={
                 status === "submitted" ||
+                (status === "ready" && !selectedModel) ||
                 (input.trim().length === 0 && status === "ready")
               }
               type={status === "ready" ? "submit" : "button"}

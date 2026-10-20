@@ -1,6 +1,4 @@
 import { Brain, Loader2 } from "lucide-react";
-import Image from "next/image";
-import { Fragment } from "react";
 import { Streamdown } from "streamdown";
 import {
   Accordion,
@@ -8,10 +6,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { ImagesDataPart, Message } from "@/lib/db";
+import type { Message } from "@/lib/db";
 import { cn } from "@/lib/utils";
-import ToolCall from "@/components/tool-call";
-import type { ChatStatus, ToolUIPart } from "ai";
+import type { ChatStatus } from "ai";
 import { cjk } from "@streamdown/cjk";
 import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
@@ -55,7 +52,7 @@ const AssistantChatItem = ({
                 <AccordionTrigger>
                   <div className="flex items-center">
                     <Brain className="size-4 mr-2" />
-                    Reasoning
+                    思考过程
                     {part.state === "streaming" && (
                       <Loader2 className="size-4 ml-2 animate-spin" />
                     )}
@@ -72,31 +69,6 @@ const AssistantChatItem = ({
               </AccordionItem>
             </Accordion>
           );
-        }
-
-        if (part.type === "data-images") {
-          return (
-            <Fragment key={key}>
-              {(part.data as ImagesDataPart).urls?.map((url, index) => {
-                const key = `image-${index}`;
-
-                return (
-                  <Image
-                    src={url}
-                    alt={key}
-                    key={key}
-                    width={512}
-                    height={512}
-                    className="rounded-md hover:brightness-75 transition-all"
-                  />
-                );
-              })}
-            </Fragment>
-          );
-        }
-
-        if (part.type.startsWith("tool-")) {
-          return <ToolCall key={key} part={part as ToolUIPart} />;
         }
 
         return null;

@@ -10,13 +10,7 @@ export interface Session {
 export type Message = UIMessage & {
   sessionId: string;
   createdAt: Date;
-  search?: boolean;
 };
-
-export interface ImagesDataPart {
-  images: Blob[];
-  urls?: string[];
-}
 
 export const db = new Dexie("CF_AI_DB") as Dexie & {
   session: EntityTable<Session, "id">;

@@ -1,9 +1,9 @@
 "use client";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { Cog, ImageIcon, MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import LoadingIndicator from "@/components/loading-indicator";
 import {
@@ -30,7 +30,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
@@ -39,7 +38,7 @@ import {
 import { db, type Session } from "@/lib/db";
 
 interface GroupedSessions {
-  type: "today" | "last 7 days" | "last 30 days" | "earlier";
+  type: "今天" | "最近 7 天" | "最近 30 天" | "更早";
   sessions: Session[];
 }
 
@@ -48,7 +47,6 @@ const AppSidebar = () => {
   const router = useRouter();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sessionId, setSessionId] = useState("");
-  const pathname = usePathname();
 
   const sessions = useLiveQuery(() =>
     db.session.limit(100).reverse().sortBy("updatedAt"),
@@ -64,13 +62,13 @@ const AppSidebar = () => {
 
         let groupType: GroupedSessions["type"];
         if (diffDays === 0) {
-          groupType = "today";
+          groupType = "今天";
         } else if (diffDays <= 7) {
-          groupType = "last 7 days";
+          groupType = "最近 7 天";
         } else if (diffDays <= 30) {
-          groupType = "last 30 days";
+          groupType = "最近 30 天";
         } else {
-          groupType = "earlier";
+          groupType = "更早";
         }
 
         const group = groups.find((g) => g.type === groupType);
@@ -96,39 +94,6 @@ const AppSidebar = () => {
   return (
     <>
       <Sidebar>
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === "/image"}>
-                <Link href="/image">
-                  <ImageIcon />
-                  Image
-                  <LoadingIndicator className="ml-auto" />
-                </Link>
-              </SidebarMenuButton>
-
-              {pathname === "/image" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction>
-                      <MoreHorizontal />
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDeleteConfirmOpen(true);
-                        setSessionId("image");
-                      }}
-                    >
-                      <span className="text-destructive">Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
         <SidebarContent className="scrollbar">
           {groupedSessions.map(({ type, sessions }) => (
             <SidebarGroup key={type}>
@@ -158,7 +123,7 @@ const AppSidebar = () => {
                                 setSessionId(id);
                               }}
                             >
-                              <span className="text-destructive">Delete</span>
+                              <span className="text-destructive">删除</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -173,13 +138,9 @@ const AppSidebar = () => {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center">
-              <Button size="icon" variant="ghost" className="size-8" disabled>
-                <Cog />
-              </Button>
-
               <Link href="/" className="ml-auto">
                 <Button variant="ghost">
-                  New Chat
+                  新对话
                   <Plus />
                 </Button>
               </Link>
@@ -191,16 +152,12 @@ const AppSidebar = () => {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete this session?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>确定删除这个对话吗？</AlertDialogTitle>
+            <AlertDialogDescription>删除后无法恢复。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

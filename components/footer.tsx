@@ -11,7 +11,7 @@ const Footer = ({ classname }: { classname?: string }) => {
     >
       v{version} ·{" "}
       <a
-        href="https://github.com/Jazee6/cloudflare-ai-web"
+        href="https://github.com/YuanyuanMa03/ai-web"
         target="_blank"
         rel="noopener"
       >
