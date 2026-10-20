@@ -11,6 +11,11 @@ const loadConfig = () => {
       if (!res.ok) throw new Error(res.statusText);
       return res.json() as Promise<PublicConfig>;
     })
+    .then((config) => {
+      // Re-check next time until the site is set up.
+      if (!config.configured) cached = undefined;
+      return config;
+    })
     .catch((error) => {
       cached = undefined;
       throw error;

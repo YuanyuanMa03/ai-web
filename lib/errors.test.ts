@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { APICallError } from "ai";
+import { APICallError, RetryError } from "ai";
 import { describeError } from "@/lib/errors";
 
 const apiError = (statusCode: number, responseBody?: string, message = "") =>
@@ -47,10 +47,31 @@ describe("describeError", () => {
     expect(describeError("weird")).not.toBe("");
   });
 
-  test("passes through plain error messages such as connection failures", () => {
-    expect(describeError(new Error("Cannot connect to API: boom"))).toContain(
-      "Cannot connect to API: boom",
-    );
+  test("passes through plain error messages", () => {
+    expect(describeError(new Error("boom"))).toContain("boom");
+  });
+
+  test("unwraps RetryError so retried 429s still get the quota hint", () => {
+    const error = new RetryError({
+      message: "Failed after 2 attempts. Last error: ",
+      reason: "maxRetriesExceeded",
+      errors: [apiError(429, ""), apiError(429, "")],
+    });
+
+    expect(describeError(error)).toContain("额度");
+  });
+
+  test("connection failures point at AI_BASE_URL without leaking the host", () => {
+    const error = new APICallError({
+      message: "Cannot connect to API: connect ECONNREFUSED 10.0.0.5:11434",
+      url: "http://10.0.0.5:11434/v1/chat/completions",
+      requestBodyValues: {},
+      isRetryable: true,
+    });
+    const text = describeError(error);
+
+    expect(text).toContain("AI_BASE_URL");
+    expect(text).not.toContain("10.0.0.5");
   });
 
   test("truncates very long upstream bodies", () => {

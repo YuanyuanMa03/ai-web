@@ -59,6 +59,7 @@ export default function Home() {
         <ViewTransition name="chat-input">
           <ChatInput
             models={config?.models ?? []}
+            disabled={!config?.configured}
             className="mx-auto max-w-3xl"
             onSendMessage={onSendMessage}
           />

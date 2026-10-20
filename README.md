@@ -63,7 +63,7 @@
 ### Docker
 
 ```bash
-docker build -t ai-web .
+docker build -t ai-web .   # 自定义标题：--build-arg SITE_NAME=我的AI
 docker run -d -p 3000:3000 -e AI_API_KEY=sk-xxx ai-web
 ```
 

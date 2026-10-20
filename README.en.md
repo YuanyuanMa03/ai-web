@@ -54,7 +54,7 @@ See [.env.example](./.env.example).
 ## Other ways to run
 
 ```bash
-docker build -t ai-web .
+docker build -t ai-web .   # custom title: --build-arg SITE_NAME=MyAI
 docker run -d -p 3000:3000 -e AI_API_KEY=sk-xxx ai-web
 ```
 

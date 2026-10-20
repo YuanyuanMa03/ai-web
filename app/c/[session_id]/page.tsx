@@ -148,6 +148,7 @@ const Page = () => {
         <ViewTransition name="chat-input">
           <ChatInput
             models={config?.models ?? []}
+            disabled={!config?.configured}
             className="mx-auto max-w-3xl bg-background shadow-xl"
             onSendMessage={onSendMessage}
             status={status}

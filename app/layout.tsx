@@ -9,9 +9,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-// Render per request so SITE_NAME can change at runtime (e.g. `docker run -e`).
-export const dynamic = "force-dynamic";
-
+// Read at build time; Vercel rebuilds on redeploy, Docker passes it as a build arg.
 export function generateMetadata(): Metadata {
   return {
     title: process.env.SITE_NAME || "AI Web",

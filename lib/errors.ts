@@ -1,4 +1,4 @@
-import { APICallError } from "ai";
+import { APICallError, RetryError } from "ai";
 
 const MAX_DETAIL = 200;
 
@@ -32,12 +32,20 @@ const truncate = (text: string) =>
 
 /** Turn a model-provider error into a message a non-developer can act on. */
 export function describeError(error: unknown): string {
+  // Retryable failures (429, 5xx, network) arrive wrapped after the retries run out.
+  if (RetryError.isInstance(error)) {
+    return describeError(error.lastError);
+  }
+
   if (APICallError.isInstance(error)) {
     const status = error.statusCode;
+    if (!status) {
+      // Network failure: the message names the upstream host, which stays private.
+      return "无法连接到模型服务，请检查 AI_BASE_URL 是否正确、服务是否可用";
+    }
     const detail = extractMessage(error.responseBody) || error.message;
-    const hint = status ? hints[status] : undefined;
     const parts = [
-      hint ?? `模型服务返回错误${status ? `（${status}）` : ""}`,
+      hints[status] ?? `模型服务返回错误（${status}）`,
       detail && truncate(detail),
     ].filter(Boolean);
     return parts.join("：");

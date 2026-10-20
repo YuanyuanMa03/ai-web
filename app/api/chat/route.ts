@@ -59,6 +59,8 @@ export async function POST(request: Request) {
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
     messages: await convertToModelMessages(messages),
+    // Free tiers rate-limit hard; retrying a 429 several times only extends the wait.
+    maxRetries: 1,
     system:
       "You are a helpful assistant. Follow the user's instructions carefully. Respond using Markdown.",
   });

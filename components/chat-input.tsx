@@ -48,6 +48,7 @@ const ChatInput = ({
   onRetry,
   status = "ready",
   models,
+  disabled,
 }: {
   className?: string;
   onSendMessage: (data: onSendMessageProps) => void;
@@ -55,6 +56,7 @@ const ChatInput = ({
   onRetry?: () => void;
   status?: ChatStatus;
   models: ModelInfo[];
+  disabled?: boolean;
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,7 +75,7 @@ const ChatInput = ({
   }, [selectedModel]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!selectedModel) return;
+    if (!selectedModel || disabled) return;
     form.resetField("input");
     setFiles([]);
     onSendMessage({
@@ -249,7 +251,7 @@ const ChatInput = ({
               className="ml-auto"
               disabled={
                 status === "submitted" ||
-                (status === "ready" && !selectedModel) ||
+                (status !== "streaming" && (!selectedModel || disabled)) ||
                 (input.trim().length === 0 && status === "ready")
               }
               type={status === "ready" ? "submit" : "button"}
