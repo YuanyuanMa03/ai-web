@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { useCallback, ViewTransition } from "react";
 import ChatInput, { type onSendMessageProps } from "@/components/chat-input";
 import Footer from "@/components/footer";
+import SetupNotice from "@/components/setup-notice";
 import { TextEffect } from "@/components/ui/text-effect";
 import { db } from "@/lib/db";
-import { models } from "@/lib/models";
+import { useAIConfig } from "@/hooks/use-ai-config";
 
 export default function Home() {
   const router = useRouter();
+  const { config, error } = useAIConfig();
 
   const onSendMessage = useCallback(
     async (data: onSendMessageProps) => {
@@ -46,12 +48,18 @@ export default function Home() {
       <div className="flex flex-col justify-center h-full w-full space-y-4 px-4">
         <div className="font-bold text-2xl mx-auto font-mono">
           <TextEffect per="word" preset="fade-in-blur">
-            How can I assist you today?
+            今天想聊点什么？
           </TextEffect>
         </div>
+        <SetupNotice
+          config={config}
+          error={error}
+          className="mx-auto max-w-3xl"
+        />
         <ViewTransition name="chat-input">
           <ChatInput
-            models={models.filter((i) => i.type === "Text Generation")}
+            models={config?.models ?? []}
+            disabled={!config?.configured}
             className="mx-auto max-w-3xl"
             onSendMessage={onSendMessage}
           />

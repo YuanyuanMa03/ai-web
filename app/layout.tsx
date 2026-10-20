@@ -9,10 +9,13 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-export const metadata: Metadata = {
-  title: "Cloudflare AI Web",
-  description: "Cloudflare AI Platform with one-click deployment.",
-};
+// Read at build time; Vercel rebuilds on redeploy, Docker passes it as a build arg.
+export function generateMetadata(): Metadata {
+  return {
+    title: process.env.SITE_NAME || "AI Web",
+    description: "填一个免费 API Key，一键部署属于自己的 AI 对话平台。",
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -23,7 +26,7 @@ export default async function RootLayout({
   // const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <body className="scrollbar-thumb-border scrollbar-track-transparent">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Toaster position="top-center" richColors />

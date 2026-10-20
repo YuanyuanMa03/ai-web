@@ -1,78 +1,69 @@
-import type { LanguageModelV3 } from "@ai-sdk/provider";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
   convertToModelMessages,
   extractReasoningMiddleware,
-  stepCountIs,
   streamText,
   wrapLanguageModel,
 } from "ai";
 import { z } from "zod";
-import { aigateway, google, workersai } from "@/app/api";
+import { getAIConfig } from "@/lib/config";
 import type { Message } from "@/lib/db";
-import type { Model } from "@/lib/models";
-import { executeCode } from "ai-sdk-tool-code-execution";
+import { describeError } from "@/lib/errors";
 
 const chatSchema = z.object({
   messages: z.array(z.any()).min(1),
   model: z.string().min(1),
-  provider: z.enum(["workers-ai", "google"]),
-  search: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const parsed = chatSchema.safeParse(body);
-
+  const parsed = chatSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return new Response("Invalid request data", { status: 400 });
+    return new Response("请求格式不正确", { status: 400 });
   }
 
-  const { messages, model, provider, search } = parsed.data as {
-    messages: Message[];
-    model: Model["id"];
-    provider: Model["provider"];
-    search?: boolean;
-  };
+  const config = getAIConfig();
+  if (!config.apiKey) {
+    return new Response(
+      "站点还没配置模型 API Key：请在部署平台设置环境变量 AI_API_KEY 后重新部署。",
+      { status: 503 },
+    );
+  }
 
-  let providerModel: LanguageModelV3;
-  const tools = {};
-  switch (provider) {
-    case "google":
-      providerModel = aigateway([google.chat(model)]);
+  const model = config.findModel(parsed.data.model);
+  if (!model) {
+    return new Response(
+      `模型 ${parsed.data.model} 不在 AI_MODELS 列表中，请刷新页面后重新选择。`,
+      { status: 400 },
+    );
+  }
 
-      Object.assign(tools, {
-        // code_execution: google.tools.codeExecution({}),
-        // url_context: google.tools.urlContext({}),
-        ...(search ? { google_search: google.tools.googleSearch({}) } : {}),
-      });
-      break;
-    case "workers-ai":
-      providerModel = wrapLanguageModel({
-        model: workersai.chat(model),
-        middleware: extractReasoningMiddleware({
-          tagName: "think",
-          startWithReasoning: model === "@cf/qwen/qwq-32b",
-        }),
-      });
+  const provider = createOpenAICompatible({
+    name: "ai",
+    apiKey: config.apiKey,
+    baseURL: config.baseURL,
+  });
 
-      if (process.env.VERCEL_OIDC_TOKEN) {
-        Object.assign(tools, {
-          executeCode: executeCode(),
-        });
-      }
-      break;
-    default:
-      return new Response(`Unsupported provider: ${provider}`, { status: 400 });
+  let messages = parsed.data.messages as Message[];
+  if (!model.vision) {
+    // Text-only models reject image parts, so drop any left over from a vision model.
+    messages = messages.map((m) => ({
+      ...m,
+      parts: m.parts.filter((p) => p.type !== "file"),
+    }));
   }
 
   const result = streamText({
-    model: providerModel,
+    // Some models stream their reasoning inside <think> tags instead of a separate field.
+    model: wrapLanguageModel({
+      model: provider.chatModel(model.id),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
     messages: await convertToModelMessages(messages),
+    // Free tiers rate-limit hard; retrying a 429 several times only extends the wait.
+    maxRetries: 1,
     system:
       "You are a helpful assistant. Follow the user's instructions carefully. Respond using Markdown.",
-    tools,
-    stopWhen: stepCountIs(5),
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({ onError: describeError });
 }

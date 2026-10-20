@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import ModelLogo from "@/components/model-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,100 +25,71 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import type { Model } from "@/lib/models";
-import { getStoredModelId, type StoredModelKey } from "@/lib/utils";
-
-const getGroupedModels = (models: Model[]) => {
-  const groupedModels: {
-    type: Model["type"];
-    models: Model[];
-  }[] = [];
-
-  for (const model of models) {
-    let group = groupedModels.find((g) => g.type === model.type);
-    if (!group) {
-      group = { type: model.type, models: [] as Model[] };
-      groupedModels.push(group);
-    }
-    group.models.push(model);
-  }
-
-  return groupedModels;
-};
+import type { ModelInfo } from "@/lib/config";
+import { MODEL_STORAGE_KEY } from "@/lib/utils";
 
 const ModelList = ({
   models,
   setOpen,
   setSelectedModel,
 }: {
-  models: Model[];
+  models: ModelInfo[];
   setOpen: (open: boolean) => void;
-  setSelectedModel: (models: Model) => void;
-}) => {
-  const groupedModels = getGroupedModels(models);
-
-  return (
-    <Command>
-      <CommandInput placeholder="Filter models..." />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        {groupedModels.map(({ type, models: groupModels }) => (
-          <CommandGroup key={type} heading={type}>
-            {groupModels.map((model) => (
-              <CommandItem
-                key={model.id}
-                value={model.id}
-                onSelect={(value) => {
-                  setSelectedModel(
-                    models.find((m) => m.id === value) ?? models[0],
-                  );
-                  setOpen(false);
-                }}
-              >
-                <span className="size-4 flex items-center justify-center">
-                  {model.logo}
-                </span>
-                {model.name}
-                {model.tag?.map((item) => (
-                  <Badge key={item} variant="outline" className="ml-auto">
-                    {item}
-                  </Badge>
-                ))}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+  setSelectedModel: (models: ModelInfo) => void;
+}) => (
+  <Command>
+    <CommandInput placeholder="搜索模型..." />
+    <CommandList>
+      <CommandEmpty>没有找到模型</CommandEmpty>
+      <CommandGroup>
+        {models.map((model) => (
+          <CommandItem
+            key={model.id}
+            value={model.id}
+            onSelect={(value) => {
+              setSelectedModel(models.find((m) => m.id === value) ?? models[0]);
+              setOpen(false);
+            }}
+          >
+            <ModelLogo brand={model.brand} />
+            {model.name}
+            {model.vision && (
+              <Badge variant="outline" className="ml-auto">
+                识图
+              </Badge>
+            )}
+          </CommandItem>
         ))}
-      </CommandList>
-    </Command>
-  );
-};
+      </CommandGroup>
+    </CommandList>
+  </Command>
+);
 
 function ComboBoxResponsive({
   models,
-  modalKey,
   selectedModel,
   setSelectedModel,
 }: {
-  models: Model[];
-  modalKey: StoredModelKey;
-  selectedModel?: Model;
-  setSelectedModel: (model: Model) => void;
+  models: ModelInfo[];
+  selectedModel?: ModelInfo;
+  setSelectedModel: (model: ModelInfo) => void;
 }) {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
     setSelectedModel(
-      models.find((item) => item.id === getStoredModelId(modalKey)) ??
-        models[0],
+      models.find(
+        (item) => item.id === localStorage.getItem(MODEL_STORAGE_KEY),
+      ) ?? models[0],
     );
-  }, [models, modalKey, setSelectedModel]);
+  }, [models, setSelectedModel]);
 
   useEffect(() => {
     if (selectedModel) {
-      localStorage.setItem(modalKey, selectedModel.id);
+      localStorage.setItem(MODEL_STORAGE_KEY, selectedModel.id);
     }
-  }, [selectedModel, modalKey]);
+  }, [selectedModel]);
 
   if (isDesktop) {
     return (
@@ -125,9 +97,7 @@ function ComboBoxResponsive({
         <PopoverTrigger asChild>
           {selectedModel && (
             <Button variant="ghost">
-              <span className="size-4 flex items-center justify-center">
-                {selectedModel.logo}
-              </span>
+              <ModelLogo brand={selectedModel.brand} />
               {selectedModel.name}
               <ChevronDown />
             </Button>
@@ -149,9 +119,7 @@ function ComboBoxResponsive({
       <DrawerTrigger asChild>
         {selectedModel && (
           <Button variant="ghost">
-            <span className="size-4 flex items-center justify-center">
-              {selectedModel.logo}
-            </span>
+            <ModelLogo brand={selectedModel.brand} />
             {selectedModel.name}
             <ChevronDown />
           </Button>
@@ -173,19 +141,16 @@ function ComboBoxResponsive({
 
 const ModelSelect = ({
   models,
-  modalKey,
   selectedModel,
   setSelectedModel,
 }: {
-  models: Model[];
-  modalKey: StoredModelKey;
-  selectedModel?: Model;
-  setSelectedModel: (model: Model) => void;
+  models: ModelInfo[];
+  selectedModel?: ModelInfo;
+  setSelectedModel: (model: ModelInfo) => void;
 }) => {
   return (
     <ComboBoxResponsive
       models={models}
-      modalKey={modalKey}
       selectedModel={selectedModel}
       setSelectedModel={setSelectedModel}
     ></ComboBoxResponsive>

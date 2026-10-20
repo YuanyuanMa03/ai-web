@@ -11,6 +11,7 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// /api/config only exposes model names, so it stays public.
 export const config = {
-  matcher: "/api/:path*",
+  matcher: "/api/chat",
 };

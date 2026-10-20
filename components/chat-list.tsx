@@ -49,7 +49,7 @@ const ChatList = memo(
 
         {status === "submitted" && (
           <li className="w-fit ani-slide-top">
-            <TextShimmer duration={1}>Generating...</TextShimmer>
+            <TextShimmer duration={1}>思考中...</TextShimmer>
           </li>
         )}
       </ul>

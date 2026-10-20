@@ -14,6 +14,7 @@ const UserChatItem = ({
         if (part.type === "text") {
           return (
             <div
+              // biome-ignore lint/suspicious/noArrayIndexKey: parts have no id and never reorder
               key={`${part.type}-${index}`}
               className="bg-secondary px-2 py-1 rounded-md self-end"
             >
@@ -27,6 +28,7 @@ const UserChatItem = ({
             return (
               // biome-ignore lint/performance/noImgElement: <data_url>
               <img
+                // biome-ignore lint/suspicious/noArrayIndexKey: parts have no id and never reorder
                 key={`${part.type}-${index}`}
                 src={part.url}
                 alt={part.filename}

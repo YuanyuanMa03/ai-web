@@ -11,8 +11,8 @@ import ChatLayout from "@/components/chat-layout";
 import ChatList from "@/components/chat-list";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { db, type Message } from "@/lib/db";
-import { models } from "@/lib/models";
-import { getStoredModel } from "@/lib/utils";
+import { useAIConfig } from "@/hooks/use-ai-config";
+import { MODEL_STORAGE_KEY, PASSWORD_STORAGE_KEY } from "@/lib/utils";
 
 const Page = () => {
   const { session_id } = useParams() as { session_id: string };
@@ -21,6 +21,7 @@ const Page = () => {
   const [loaded, setLoaded] = useState(isNew);
   const { chatListRef, showToBottom, scrollToBottom } = useScrollToBottom();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const { config } = useAIConfig();
 
   const initMessages = useLiveQuery(
     () =>
@@ -37,17 +38,13 @@ const Page = () => {
       transport: new DefaultChatTransport({
         api: "/api/chat",
         prepareSendMessagesRequest: ({ messages }) => {
-          const { id, provider } = getStoredModel("CF_AI_MODEL");
-
           return {
             headers: {
-              Authorization: localStorage.getItem("CF_AI_PASSWORD") ?? "",
+              Authorization: localStorage.getItem(PASSWORD_STORAGE_KEY) ?? "",
             },
             body: {
               messages: messages.slice(-10),
-              model: id,
-              provider,
-              search: localStorage.getItem("CF_AI_SEARCH_ENABLED") === "true",
+              model: localStorage.getItem(MODEL_STORAGE_KEY) ?? "",
             },
           };
         },
@@ -72,7 +69,7 @@ const Page = () => {
         toast.error(
           error.message.length > 100
             ? `${error.message.slice(0, 100)}...`
-            : error.message || "Unknown error occurred. Please try again.",
+            : error.message || "出错了，请重试",
         );
       },
     });
@@ -98,6 +95,7 @@ const Page = () => {
     }
   }, [isNew, initMessages, sendMessage]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on each streamed chunk; the ref's scroll position is read, not tracked
   useEffect(() => {
     if (status === "streaming" && chatListRef.current && messages.length) {
       if (
@@ -149,7 +147,8 @@ const Page = () => {
       bottomBar={
         <ViewTransition name="chat-input">
           <ChatInput
-            models={models.filter((i) => i.type === "Text Generation")}
+            models={config?.models ?? []}
+            disabled={!config?.configured}
             className="mx-auto max-w-3xl bg-background shadow-xl"
             onSendMessage={onSendMessage}
             status={status}
